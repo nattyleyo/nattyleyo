@@ -1,79 +1,50 @@
-name: Supabase Backup
+name: Supabase Backup (IPv4 Forced)
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *" # Daily at midnight UTC
-
-env:
-  BACKUP_ENABLED: true
+    - cron: "0 0 * * *"
 
 jobs:
-  run_db_backup:
+  backup:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: write
 
     steps:
-      - name: Check if backups are enabled
-        run: |
-          if [ "${{ env.BACKUP_ENABLED }}" != "true" ]; then
-            echo "Backups are disabled. Exiting workflow."
-            exit 0
-          fi
-
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+      - name: Install PostgreSQL Client
+        run: sudo apt-get install -y postgresql-client-15
+
+      - name: Create Backup Directory
+        run: mkdir -p backups
+
+      - name: Run pg_dump (Direct IPv4 Connection)
+        env:
+          PGHOST: db.YOUR_PROJECT_REF.supabase.co
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          PGDATABASE: postgres
+        run: |
+          # Force IPv4 by disabling IPv6 at system level
+          echo "precedence ::ffff:0:0/96  100" | sudo tee -a /etc/gai.conf
+          
+          # Test connection
+          psql -c "SELECT 1" || exit 1
+          
+          # Perform backup
+          pg_dump -Fc -Z 9 -f "backups/dump_$(date +%Y%m%d).pgdump"
+          
+          # Verify backup
+          if [ ! -s "backups/dump_$(date +%Y%m%d).pgdump" ]; then
+            echo "Backup failed - empty file!"
+            exit 1
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          version: latest
-
-      - name: Create backup directory
-        run: mkdir -p prisma/backups
-
-      - name: Get timestamp
-        id: timestamp
-        run: echo "TIMESTAMP=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
-
-      - name: Backup roles (IPv4 enforced)
-        env:
-          DB_URL: "${{ secrets.SUPABASE_DB_URL }}?options=-c%20listen_addresses%3D%2A"
-        run: |
-          supabase db dump --db-url "$DB_URL" \
-            -f "prisma/backups/roles_${{ steps.timestamp.outputs.TIMESTAMP }}.sql" \
-            --role-only
-
-      - name: Backup schema (IPv4 enforced)
-        env:
-          DB_URL: "${{ secrets.SUPABASE_DB_URL }}?options=-c%20listen_addresses%3D%2A"
-        run: |
-          supabase db dump --db-url "$DB_URL" \
-            -f "prisma/backups/schema_${{ steps.timestamp.outputs.TIMESTAMP }}.sql"
-
-      - name: Backup data (IPv4 enforced)
-        env:
-          DB_URL: "${{ secrets.SUPABASE_DB_URL }}?options=-c%20listen_addresses%3D%2A"
-        run: |
-          supabase db dump --db-url "$DB_URL" \
-            -f "prisma/backups/data_${{ steps.timestamp.outputs.TIMESTAMP }}.sql" \
-            --data-only --use-copy
-
-      - name: Verify backups
-        run: |
-          ls -lah prisma/backups/
-          for file in prisma/backups/*; do
-            if [ ! -s "$file" ]; then
-              echo "ERROR: Backup file $file is empty!"
-              exit 1
-            fi
-          done
-
-      - name: Commit backups
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Supabase backup ${{ steps.timestamp.outputs.TIMESTAMP }}"
-          branch: main
-          file_pattern: prisma/backups/*
+          name: db-backup
+          path: backups/*.pgdump

@@ -26,17 +26,10 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase login --token $SUPABASE_ACCESS_TOKEN
 
-      - name: Link to Supabase Project
+      - name: Dump Supabase database backup
         env:
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}  # includes password
-        run: |
-          supabase link --project-ref $SUPABASE_PROJECT_REF --db-url $SUPABASE_DB_URL
-
-
-      - name: Dump Supabase Database
-        run: |
-          supabase db dump --db-url ${{ secrets.SUPABASE_DB_URL }} --file backup.sql
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase db dump --db-url $SUPABASE_DB_URL --file backup.sql
 
       - name: Upload Backup Artifact
         uses: actions/upload-artifact@v4

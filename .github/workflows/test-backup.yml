@@ -33,10 +33,10 @@ jobs:
       # 3. Create backup
       - name: Run Backup
         env:
-          PGHOST: db.YOUR_PROJECT_REF.supabase.co
+          PGHOST: db.mlrtlpatqeqchjmafqnm.supabase.co
           PGPORT: 5432
           PGUSER: postgres
-          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          PGPASSWORD: kSyZVPTQ8vo9Rt0n
           PGDATABASE: postgres
         run: |
           # Test connection

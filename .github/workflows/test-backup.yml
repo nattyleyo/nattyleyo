@@ -8,24 +8,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Supabase CLI
+      - name: Download Supabase CLI
         run: |
-          curl -sL https://github.com/supabase/cli/releases/latest/download/install.sh | sh
-          echo "$HOME/.supabase/bin" >> $GITHUB_PATH
+          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
+          tar -xvzf supabase.tar.gz
+          chmod +x supabase
+          sudo mv supabase /usr/local/bin/supabase
 
-      - name: Verify Supabase CLI
+      - name: Check Supabase CLI version
         run: supabase --version
 
-      - name: Backup Supabase DB
+      - name: Dump Supabase DB
         run: |
           supabase db dump \
             --db-url "${{ secrets.SUPABASE_DB_URL }}" \
             --file backup.sql
 
-      - name: Upload backup file to GitHub Artifacts
+      - name: Upload Backup to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: supabase-db-backup

@@ -3,20 +3,22 @@ name: Test Supabase Backup
 on:
   schedule:
     - cron: '0 */12 * * *'  # Every 12 hours
-  workflow_dispatch:        # Allow manual testing
+  workflow_dispatch:        # Manual trigger
 
 jobs:
   backup:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      - name: Download Supabase CLI
+        run: |
+          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
+          tar -xvzf supabase.tar.gz
+          chmod +x supabase
+          sudo mv supabase /usr/local/bin/supabase
 
-      - name: Install Supabase CLI
-        run: npm install -g supabase
+      - name: Check Supabase CLI version
+        run: supabase --version
 
       - name: Login to Supabase
         run: echo "${{ secrets.SUPABASE_ACCESS_TOKEN }}" | supabase login

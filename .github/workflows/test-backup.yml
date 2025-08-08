@@ -1,9 +1,9 @@
-name: Test Supabase Backup
+name: Supabase Remote Backup
 
 on:
   schedule:
     - cron: '0 */12 * * *'  # Every 12 hours
-  workflow_dispatch:        # Manual trigger
+  workflow_dispatch:
 
 jobs:
   backup:
@@ -20,14 +20,11 @@ jobs:
       - name: Check Supabase CLI version
         run: supabase --version
 
-      - name: Login to Supabase
-        run: echo "${{ secrets.SUPABASE_ACCESS_TOKEN }}" | supabase login
-
-      - name: Dump test database
+      - name: Dump remote Supabase DB
         run: |
-          supabase db dump --project-ref ${{ secrets.TEST_PROJECT_REF }} --file test_backup.sql
+          supabase db dump --db-url "${{ secrets.TEST_DB_URL }}" --file test_backup.sql
 
-      - name: Upload .sql to Supabase Storage
+      - name: Upload backup to Supabase Storage
         run: |
           curl -X POST "https://${{ secrets.TEST_PROJECT_REF }}.supabase.co/storage/v1/object/backups/test_backup.sql" \
             -H "Authorization: Bearer ${{ secrets.SERVICE_ROLE_KEY }}" \

@@ -29,8 +29,10 @@ jobs:
       - name: Link to Supabase Project
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}  # includes password
         run: |
-          supabase link --project-ref $SUPABASE_PROJECT_REF
+          supabase link --project-ref $SUPABASE_PROJECT_REF --db-url $SUPABASE_DB_URL
+
 
       - name: Dump Supabase Database
         run: |

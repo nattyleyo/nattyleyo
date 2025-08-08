@@ -6,12 +6,18 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Supabase CLI
-        run: npm install -g supabase@1.158.1
+        run: |
+          curl -sL https://github.com/supabase/cli/releases/latest/download/install.sh | sh
+          echo "$HOME/.supabase/bin" >> $GITHUB_PATH
+
+      - name: Verify Supabase CLI
+        run: supabase --version
 
       - name: Backup Supabase DB
         run: |
@@ -19,9 +25,8 @@ jobs:
             --db-url "${{ secrets.SUPABASE_DB_URL }}" \
             --file backup.sql
 
-      - name: Upload to Supabase Storage
-        run: |
-          FILENAME="backup_$(date +%Y-%m-%dT%H-%M-%S).sql"
-          supabase storage cp backup.sql "storage://${{ secrets.SUPABASE_BUCKET }}/$FILENAME" \
-            --project-url "${{ secrets.SUPABASE_PROJECT_URL }}" \
-            --service-role-key "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+      - name: Upload backup file to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-db-backup
+          path: backup.sql

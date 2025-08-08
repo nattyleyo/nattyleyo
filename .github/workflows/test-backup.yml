@@ -1,4 +1,4 @@
-name: Supabase DB Backup (IPv4-safe)
+name: Supabase DB Backup
 
 on:
   workflow_dispatch:
@@ -8,24 +8,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-      - name: Dump Supabase Database to SQL
-        env:
-          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - name: Download Supabase CLI
         run: |
-          # Parse the DB URL manually
-          export PGPASSWORD=$(echo "$DB_URL" | sed -E 's/.*\/\/[^:]+:([^@]+)@.*/\1/')
-          export PGUSER=$(echo "$DB_URL" | sed -E 's/.*\/\/([^:]+):[^@]+@.*/\1/')
-          export PGHOST=$(echo "$DB_URL" | sed -E 's/.*@([^:]+):.*/\1/')
-          export PGPORT=$(echo "$DB_URL" | sed -E 's/.*:([0-9]+)\/.*/\1/')
-          export PGDATABASE=$(echo "$DB_URL" | sed -E 's/.*\/([^?]+).*/\1/')
+          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
+          tar -xvzf supabase.tar.gz
+          chmod +x supabase
+          sudo mv supabase /usr/local/bin/supabase
 
-          # Force IPv4 for pg_dump
-          pg_dump --host="$PGHOST" --port="$PGPORT" --username="$PGUSER" --dbname="$PGDATABASE" --no-password --file=backup.sql --verbose --format=plain
+      - name: Check Supabase CLI version
+        run: supabase --version
 
-      - name: Upload Backup
+      - name: Login to Supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          echo "$SUPABASE_ACCESS_TOKEN" | supabase login --with-token
+
+      - name: Link to Supabase Project
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase link --project-ref $SUPABASE_PROJECT_REF
+
+      - name: Dump Supabase Database
+        run: |
+          supabase db dump --db-url ${{ secrets.SUPABASE_DB_URL }} --file backup.sql
+
+      - name: Upload Backup Artifact
         uses: actions/upload-artifact@v4
         with:
           name: supabase-db-backup

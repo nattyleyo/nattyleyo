@@ -1,4 +1,4 @@
-name: Supabase Backup (Working Version)
+name: Supabase Backup via API
 
 on:
   workflow_dispatch:
@@ -8,53 +8,53 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # 1. Install correct PostgreSQL client version
-      - name: Add PostgreSQL Repository
-        run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo apt-get update
-
-      - name: Install PostgreSQL 14 Client (LTS)
-        run: sudo apt-get install -y postgresql-client-14
-
-      # 2. Force IPv4 connection
-      - name: Configure IPv4 Preference
-        run: |
-          echo "precedence ::ffff:0:0/96  100" | sudo tee -a /etc/gai.conf
-          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
-
-      # 3. Create backup
-      - name: Run Backup
+      - name: Trigger Supabase Backup
         env:
-          PGHOST: db.mlrtlpatqeqchjmafqnm.supabase.co
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: kSyZVPTQ8vo9Rt0n
-          PGDATABASE: postgres
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: mlrtlpatqeqchjmafqnm
         run: |
-          # Test connection
-          psql -c "SELECT 1" || exit 1
-          
-          # Create timestamp
-          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-          
-          # Perform backup (custom format with compression)
-          pg_dump -Fc -Z 6 -f "supabase_backup_$TIMESTAMP.pgdump"
-          
-          # Verify backup
-          if [ ! -s "supabase_backup_$TIMESTAMP.pgdump" ]; then
-            echo "Backup failed - empty file!"
+          # Trigger backup
+          echo "Triggering backup for project $PROJECT_REF"
+          RESPONSE=$(curl -s -X POST \
+            "https://api.supabase.com/v1/projects/$PROJECT_REF/backups" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json")
+
+          # Check response
+          if [[ "$RESPONSE" == *"Backup started"* ]] || [[ "$RESPONSE" == *"already in progress"* ]]; then
+            echo "Backup triggered successfully"
+          else
+            echo "Backup failed to trigger. Response:"
+            echo "$RESPONSE"
             exit 1
           fi
 
-      # 4. Upload artifact
-      - name: Upload Backup
+      - name: Verify Backup Completion
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: mlrtlpatqeqchjmafqnm
         run: |
-          echo "backupsucesss"
+          # Wait for backup completion
+          echo "Waiting for backup to complete..."
+          for i in {1..12}; do
+            STATUS=$(curl -s "https://api.supabase.com/v1/projects/$PROJECT_REF/backups" \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              | jq -r '.items[0].status')
+
+            if [[ "$STATUS" == "completed" ]]; then
+              echo "Backup completed successfully"
+              exit 0
+            elif [[ "$STATUS" == "failed" ]]; then
+              echo "Backup failed"
+              exit 1
+            fi
+
+            echo "Status: $STATUS (check $i of 12)"
+            sleep 10
+          done
+
+          echo "Backup timed out"
+          exit 1

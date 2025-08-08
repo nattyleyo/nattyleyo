@@ -1,50 +1,27 @@
 name: Supabase DB Backup
 
 on:
-  schedule:
-    - cron: "0 */12 * * *" # Every 12 hours UTC
   workflow_dispatch:
 
 jobs:
   backup:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Install pg_dump
-        run: sudo apt-get install -y postgresql-client
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Parse Supabase DB credentials
-        id: parse
+      - name: Install Supabase CLI
+        run: npm install -g supabase@1.158.1
+
+      - name: Backup Supabase DB
         run: |
-          DB_URL="${{ secrets.SUPABASE_DB_URL }}"
-          USER=$(echo "$DB_URL" | sed -E 's|^.*://([^:]+):.*$|\1|')
-          PASSWORD=$(echo "$DB_URL" | sed -E 's|^.*://[^:]+:([^@]+)@.*$|\1|')
-          HOST=$(echo "$DB_URL" | sed -E 's|^.*@([^:/]+):.*$|\1|')
-          PORT=$(echo "$DB_URL" | sed -E 's|.*:([0-9]+)/.*$|\1|')
-          DATABASE=$(echo "$DB_URL" | sed -E 's|.*/([^?]+).*|\1|')
-
-          echo "USER=$USER" >> $GITHUB_OUTPUT
-          echo "PASSWORD=$PASSWORD" >> $GITHUB_OUTPUT
-          echo "HOST=$HOST" >> $GITHUB_OUTPUT
-          echo "PORT=$PORT" >> $GITHUB_OUTPUT
-          echo "DATABASE=$DATABASE" >> $GITHUB_OUTPUT
-
-      - name: Backup Supabase Database
-        run: |
-          export PGPASSWORD=${{ steps.parse.outputs.PASSWORD }}
-          FILENAME="backup_$(date +%Y-%m-%dT%H-%M-%S).dump"
-
-          pg_dump -h ${{ steps.parse.outputs.HOST }} \
-                  -p ${{ steps.parse.outputs.PORT }} \
-                  -U ${{ steps.parse.outputs.USER }} \
-                  -d ${{ steps.parse.outputs.DATABASE }} \
-                  -F c -f $FILENAME
-
-          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+          supabase db dump \
+            --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+            --file backup.sql
 
       - name: Upload to Supabase Storage
         run: |
-          curl -X POST "${{ secrets.SUPABASE_PROJECT_URL }}/storage/v1/object/${{ secrets.SUPABASE_BUCKET }}/$FILENAME" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary "@$FILENAME"
+          FILENAME="backup_$(date +%Y-%m-%dT%H-%M-%S).sql"
+          supabase storage cp backup.sql "storage://${{ secrets.SUPABASE_BUCKET }}/$FILENAME" \
+            --project-url "${{ secrets.SUPABASE_PROJECT_URL }}" \
+            --service-role-key "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"

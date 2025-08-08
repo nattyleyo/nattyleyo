@@ -1,0 +1,33 @@
+name: Test Supabase Backup
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # Every 12 hours
+  workflow_dispatch:        # Allow manual testing
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Supabase CLI
+        run: npm install -g supabase
+
+      - name: Login to Supabase
+        run: echo "${{ secrets.SUPABASE_ACCESS_TOKEN }}" | supabase login
+
+      - name: Dump test database
+        run: |
+          supabase db dump --project-ref ${{ secrets.TEST_PROJECT_REF }} --file test_backup.sql
+
+      - name: Upload .sql to Supabase Storage
+        run: |
+          curl -X POST "https://${{ secrets.TEST_PROJECT_REF }}.supabase.co/storage/v1/object/backups/test_backup.sql" \
+            -H "Authorization: Bearer ${{ secrets.SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/sql" \
+            --data-binary @test_backup.sql

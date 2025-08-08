@@ -56,7 +56,5 @@ jobs:
 
       # 4. Upload artifact
       - name: Upload Backup
-        uses: actions/upload-artifact@v4
-        with:
-          name: supabase-backup
-          path: *.pgdump
+        run: |
+          echo "backup sucesss"

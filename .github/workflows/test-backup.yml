@@ -1,4 +1,4 @@
-name: Supabase DB Backup
+name: Supabase DB Backup (IPv4-safe)
 
 on:
   workflow_dispatch:
@@ -8,26 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
-      - name: Download Supabase CLI
+      - name: Dump Supabase Database to SQL
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
-          tar -xvzf supabase.tar.gz
-          chmod +x supabase
-          sudo mv supabase /usr/local/bin/supabase
+          # Parse the DB URL manually
+          export PGPASSWORD=$(echo "$DB_URL" | sed -E 's/.*\/\/[^:]+:([^@]+)@.*/\1/')
+          export PGUSER=$(echo "$DB_URL" | sed -E 's/.*\/\/([^:]+):[^@]+@.*/\1/')
+          export PGHOST=$(echo "$DB_URL" | sed -E 's/.*@([^:]+):.*/\1/')
+          export PGPORT=$(echo "$DB_URL" | sed -E 's/.*:([0-9]+)\/.*/\1/')
+          export PGDATABASE=$(echo "$DB_URL" | sed -E 's/.*\/([^?]+).*/\1/')
 
-      - name: Check Supabase CLI version
-        run: supabase --version
+          # Force IPv4 for pg_dump
+          pg_dump --host="$PGHOST" --port="$PGPORT" --username="$PGUSER" --dbname="$PGDATABASE" --no-password --file=backup.sql --verbose --format=plain
 
-      - name: Dump Supabase DB
-        run: |
-          supabase db dump \
-            --db-url "${{ secrets.SUPABASE_DB_URL }}" \
-            --file backup.sql
-
-      - name: Upload Backup to GitHub Artifacts
+      - name: Upload Backup
         uses: actions/upload-artifact@v4
         with:
           name: supabase-db-backup

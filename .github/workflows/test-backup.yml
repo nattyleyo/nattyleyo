@@ -1,8 +1,8 @@
-name: Supabase Remote Backup
+name: Supabase DB Backup
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # Every 12 hours
+    - cron: "0 */12 * * *" # Every 12 hours UTC
   workflow_dispatch:
 
 jobs:
@@ -10,23 +10,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Supabase CLI
-        run: |
-          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
-          tar -xvzf supabase.tar.gz
-          chmod +x supabase
-          sudo mv supabase /usr/local/bin/supabase
+      - name: Install pg_dump
+        run: sudo apt-get install -y postgresql-client
 
-      - name: Check Supabase CLI version
-        run: supabase --version
-
-      - name: Dump remote Supabase DB
+      - name: Parse Supabase DB credentials
+        id: parse
         run: |
-          supabase db dump --db-url "${{ secrets.TEST_DB_URL }}" --file test_backup.sql
+          DB_URL="${{ secrets.SUPABASE_DB_URL }}"
+          USER=$(echo "$DB_URL" | sed -E 's|^.*://([^:]+):.*$|\1|')
+          PASSWORD=$(echo "$DB_URL" | sed -E 's|^.*://[^:]+:([^@]+)@.*$|\1|')
+          HOST=$(echo "$DB_URL" | sed -E 's|^.*@([^:/]+):.*$|\1|')
+          PORT=$(echo "$DB_URL" | sed -E 's|.*:([0-9]+)/.*$|\1|')
+          DATABASE=$(echo "$DB_URL" | sed -E 's|.*/([^?]+).*|\1|')
 
-      - name: Upload backup to Supabase Storage
+          echo "USER=$USER" >> $GITHUB_OUTPUT
+          echo "PASSWORD=$PASSWORD" >> $GITHUB_OUTPUT
+          echo "HOST=$HOST" >> $GITHUB_OUTPUT
+          echo "PORT=$PORT" >> $GITHUB_OUTPUT
+          echo "DATABASE=$DATABASE" >> $GITHUB_OUTPUT
+
+      - name: Backup Supabase Database
         run: |
-          curl -X POST "https://${{ secrets.TEST_PROJECT_REF }}.supabase.co/storage/v1/object/backups/test_backup.sql" \
-            -H "Authorization: Bearer ${{ secrets.SERVICE_ROLE_KEY }}" \
-            -H "Content-Type: application/sql" \
-            --data-binary @test_backup.sql
+          export PGPASSWORD=${{ steps.parse.outputs.PASSWORD }}
+          FILENAME="backup_$(date +%Y-%m-%dT%H-%M-%S).dump"
+
+          pg_dump -h ${{ steps.parse.outputs.HOST }} \
+                  -p ${{ steps.parse.outputs.PORT }} \
+                  -U ${{ steps.parse.outputs.USER }} \
+                  -d ${{ steps.parse.outputs.DATABASE }} \
+                  -F c -f $FILENAME
+
+          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+
+      - name: Upload to Supabase Storage
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_PROJECT_URL }}/storage/v1/object/${{ secrets.SUPABASE_BUCKET }}/$FILENAME" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@$FILENAME"

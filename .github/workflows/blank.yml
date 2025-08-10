@@ -1,22 +1,33 @@
-name: Supabase Backup (pg_dump)
+name: Supabase Backup (Commit to Repo)
 on:
   schedule:
     - cron: '0 2 * * *'  # Daily at 2 AM UTC
   workflow_dispatch:      # Manual trigger
+
 jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to commit later
+
+      - name: Setup PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
       - name: Dump Database
         run: |
-          apt-get update && apt-get install -y postgresql-client
           PGPASSWORD=${{ secrets.DB_PASSWORD }} pg_dump \
             -h ${{ secrets.DB_HOST }} \
             -U ${{ secrets.DB_USER }} \
             -d postgres \
             -f backup.sql
-      - name: Upload Backup
-        uses: actions/upload-artifact@v3
-        with:
-          name: supabase-backup
-          path: backup.sql
+
+      - name: Commit Backup
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add backup.sql
+          git commit -m "chore: Auto-backup $(date +'%Y-%m-%d')"
+          git push

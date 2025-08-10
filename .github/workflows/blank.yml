@@ -1,19 +1,20 @@
-name: Test Supabase Backup
-on:
-  workflow_dispatch:  # Manual trigger only
+name: Supabase Backup (IPv4 Compatible)
+on: workflow_dispatch
 
 jobs:
-  backup-test:
+  backup:
     runs-on: ubuntu-latest
     steps:
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Setup
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client dnsutils
 
-      - name: Test connection and dump (without saving)
+      - name: Backup via Connection Pooler
         run: |
           PGPASSWORD=${{ secrets.DB_PASSWORD }} pg_dump \
-            -h ${{ secrets.DB_HOST }} \  # <-- FIXED: Removed the duplicate
-            -U ${{ secrets.DB_USER }} \
+            -h ${{ secrets.DB_HOST }} \
+            -p 6543 \  # Critical: Pooler port
+            -U postgres \
             -d postgres \
+            --sslmode=require \
             --file=/dev/null
-          echo "✅ Backup successful! (Tested connection and pg_dump)"
+          echo "✅ Backup successful!"

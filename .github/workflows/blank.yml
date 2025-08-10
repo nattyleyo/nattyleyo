@@ -12,9 +12,8 @@ jobs:
       - name: Test connection and dump (without saving)
         run: |
           PGPASSWORD=${{ secrets.DB_PASSWORD }} pg_dump \
-            -h ${{ secrets.DB_PASSWORD }} pg_dump \
-            -h ${{ secrets.DB_HOST }} \
+            -h ${{ secrets.DB_HOST }} \  # <-- FIXED: Removed the duplicate
             -U ${{ secrets.DB_USER }} \
             -d postgres \
-            --file=/dev/null  # Dumps to void (no storage)
+            --file=/dev/null
           echo "✅ Backup successful! (Tested connection and pg_dump)"

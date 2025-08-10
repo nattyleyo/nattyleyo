@@ -1,60 +1,22 @@
-name: Supabase Backup via API
-
+name: Supabase Backup (pg_dump)
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *" # Daily at midnight UTC
-
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:      # Manual trigger
 jobs:
   backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Trigger Supabase Backup
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          PROJECT_REF: mlrtlpatqeqchjmafqnm
+      - name: Dump Database
         run: |
-          # Trigger backup
-          echo "Triggering backup for project $PROJECT_REF"
-          RESPONSE=$(curl -s -X POST \
-            "https://api.supabase.com/v1/projects/$PROJECT_REF/backups" \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            -H "Content-Type: application/json")
-
-          # Check response
-          if [[ "$RESPONSE" == *"Backup started"* ]] || [[ "$RESPONSE" == *"already in progress"* ]]; then
-            echo "Backup triggered successfully"
-          else
-            echo "Backup failed to trigger. Response:"
-            echo "$RESPONSE"
-            exit 1
-          fi
-
-      - name: Verify Backup Completion
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          PROJECT_REF: mlrtlpatqeqchjmafqnm
-        run: |
-          # Wait for backup completion
-          echo "Waiting for backup to complete..."
-          for i in {1..12}; do
-            STATUS=$(curl -s "https://api.supabase.com/v1/projects/$PROJECT_REF/backups" \
-              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-              | jq -r '.items[0].status')
-
-            if [[ "$STATUS" == "completed" ]]; then
-              echo "Backup completed successfully"
-              exit 0
-            elif [[ "$STATUS" == "failed" ]]; then
-              echo "Backup failed"
-              exit 1
-            fi
-
-            echo "Status: $STATUS (check $i of 12)"
-            sleep 10
-          done
-
-          echo "Backup timed out"
-          exit 1
+          apt-get update && apt-get install -y postgresql-client
+          PGPASSWORD=${{ secrets.DB_PASSWORD }} pg_dump \
+            -h ${{ secrets.DB_HOST }} \
+            -U ${{ secrets.DB_USER }} \
+            -d postgres \
+            -f backup.sql
+      - name: Upload Backup
+        uses: actions/upload-artifact@v3
+        with:
+          name: supabase-backup
+          path: backup.sql

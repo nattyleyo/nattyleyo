@@ -33,16 +33,14 @@ jobs:
             --no-password > schema_backup_$(date +%s).sql
 
       - name: Commit and push backup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Commit changes if there are any
           git add schema_backup.sql
           git diff --cached --quiet || git commit -m "Automated schema backup $(date +'%Y-%m-%d %H:%M:%S')"
 
-          # Push to current branch
           git push origin HEAD:${GITHUB_REF#refs/heads/}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           echo "Backup complete: schema_backup_$(date +%s).sql"

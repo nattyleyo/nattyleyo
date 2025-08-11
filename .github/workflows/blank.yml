@@ -1,4 +1,7 @@
 name: Backup Supabase Schema
+permissions:
+  contents: write
+
 
 on:
   workflow_dispatch:

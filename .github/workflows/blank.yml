@@ -1,14 +1,15 @@
-name: Test Supabase Connection
+name: Backup Supabase Schema
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-connection:
+  backup:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Backup Supabase schema only
+      - uses: actions/checkout@v3
+
+      - name: Create schema backup
         env:
           DB_HOST: aws-0-us-east-2.pooler.supabase.com
           DB_PORT: 5432
@@ -16,24 +17,23 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: postgres
         run: |
-          echo "Starting schema backup..."
           PGPASSWORD=$DB_PASSWORD pg_dump \
             --host=$DB_HOST \
             --port=$DB_PORT \
             --username=$DB_USER \
             --dbname=$DB_NAME \
-            --schema-only > schema_backup_$(date +%s).sql
-      
-      - name: Upload schema backup artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: supabase-schema-backup
-          path: schema_backup_*.sql
+            --schema-only > schema_backup.sql
 
-          echo "Backup complete: schema_backup_$(date +%s).sql"
+      - name: Commit and push backup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Upload schema backup artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: supabase-schema-backup
-          path: schema_backup_*.sql
+          # Commit changes if there are any
+          git add schema_backup.sql
+          git diff --cached --quiet || git commit -m "Automated schema backup $(date +'%Y-%m-%d %H:%M:%S')"
+
+          # Push to current branch
+          git push origin HEAD:${GITHUB_REF#refs/heads/}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

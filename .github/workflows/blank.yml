@@ -47,33 +47,14 @@ jobs:
           # Set output timestamp for next step
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
 
-      - name: Install Supabase CLI binary
-        run: |
-          # Map uname outputs to lowercase expected by Supabase
-          OS=$(uname | tr '[:upper:]' '[:lower:]')
-          ARCH=$(uname -m)
-      
-          # Translate arch names to supabase expected format
-          if [ "$ARCH" = "x86_64" ]; then
-            ARCH="amd64"
-          elif [[ "$ARCH" == aarch64* ]]; then
-            ARCH="arm64"
-          fi
-      
-          URL="https://github.com/supabase/cli/releases/latest/download/supabase_${OS}_${ARCH}.tar.xz"
-      
-          echo "Downloading supabase CLI from $URL"
-          curl -L $URL -o supabase.tar.xz
-          tar -xf supabase.tar.xz
-          sudo mv supabase /usr/local/bin/
-          supabase --version
-
-
-      - name: Upload backup to Supabase Storage
+      - name: Upload backup to Supabase Storage via REST API
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}  # e.g. sqwzjhoqqgaruscfczaq
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
           TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
         run: |
-          supabase storage cp Auto-Backup/schema_backup_$TIMESTAMP.sql backups/schema/schema_backup_$TIMESTAMP.sql --project-ref $SUPABASE_PROJECT_REF
-          echo "Backup uploaded to Supabase Storage at backups/schema/schema_backup_$TIMESTAMP.sql"
+          curl -X POST "https://$SUPABASE_URL.supabase.co/storage/v1/object/backups/schema/schema_backup_$TIMESTAMP.sql" \
+            -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+            -H "apikey: $SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @Auto-Backup/schema_backup_$TIMESTAMP.sql

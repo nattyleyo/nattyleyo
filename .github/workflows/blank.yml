@@ -8,14 +8,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install and connect Cloudflare WARP
+      - name: Install and setup Cloudflare WARP
         run: |
           curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
           sudo apt-get update
           sudo apt-get install -y cloudflare-warp
           sudo systemctl start warp-svc
-          sudo warp-cli connect --accept-tos
+          sudo warp-cli registration register
+          sudo warp-cli connect
           sudo warp-cli status
 
       - name: Install PostgreSQL client

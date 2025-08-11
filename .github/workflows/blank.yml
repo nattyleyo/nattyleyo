@@ -47,7 +47,6 @@ jobs:
           # Use new way to set output variable
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
           
-
       - name: Setup Supabase CLI
         uses: supabase/cli-action@v1
         with:

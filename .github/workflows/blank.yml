@@ -48,20 +48,16 @@ jobs:
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
           
 
+      - name: Setup Supabase CLI
+        uses: supabase/cli-action@v1
+        with:
+          version: latest
+
       - name: Upload backup to Supabase Storage
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
           TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
         run: |
-          # Install supabase CLI if not installed
-          if ! command -v supabase &> /dev/null; then
-            curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-            npm install -g supabase
-          fi
-
-          # Upload the backup file to Supabase storage bucket 'backups', folder 'schema'
           supabase storage cp Auto-Backup/schema_backup_$TIMESTAMP.sql backups/schema/schema_backup_$TIMESTAMP.sql --project-ref $SUPABASE_PROJECT_REF
-
           echo "Backup uploaded to Supabase Storage at backups/schema/schema_backup_$TIMESTAMP.sql"

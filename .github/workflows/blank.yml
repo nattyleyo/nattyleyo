@@ -49,10 +49,25 @@ jobs:
 
       - name: Install Supabase CLI binary
         run: |
-          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_$(uname -s)_$(uname -m).tar.xz -o supabase.tar.xz
+          # Map uname outputs to lowercase expected by Supabase
+          OS=$(uname | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+      
+          # Translate arch names to supabase expected format
+          if [ "$ARCH" = "x86_64" ]; then
+            ARCH="amd64"
+          elif [[ "$ARCH" == aarch64* ]]; then
+            ARCH="arm64"
+          fi
+      
+          URL="https://github.com/supabase/cli/releases/latest/download/supabase_${OS}_${ARCH}.tar.xz"
+      
+          echo "Downloading supabase CLI from $URL"
+          curl -L $URL -o supabase.tar.xz
           tar -xf supabase.tar.xz
           sudo mv supabase /usr/local/bin/
           supabase --version
+
 
       - name: Upload backup to Supabase Storage
         env:

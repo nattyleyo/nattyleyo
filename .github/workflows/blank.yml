@@ -8,11 +8,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Cloudflare WARP
+      - name: Install and setup Cloudflare WARP
         run: |
+          # Add Cloudflare repo and key
           curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+      
+          # Update and install warp client
           sudo apt-get update
           sudo apt-get install -y cloudflare-warp
-      - name: Show warp-cli registration help
-        run: warp-cli registration --help
+      
+          # Start warp service
+          sudo systemctl start warp-svc
+      
+          # Register client (accept ToS)
+          sudo warp-cli registration new
+      
+          # Connect warp client
+          sudo warp-cli connect
+      
+          # Check status
+          sudo warp-cli status
+
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Test connection to Supabase
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASS }}
+        run: |
+          psql "host=${{ secrets.DB_HOST }} user=${{ secrets.DB_USER }} dbname=${{ secrets.DB_NAME }} sslmode=require" -c "\dt"

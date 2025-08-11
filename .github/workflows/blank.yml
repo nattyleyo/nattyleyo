@@ -44,8 +44,9 @@ jobs:
             --no-password > Auto-Backup/schema_backup_$TIMESTAMP.sql
           echo "Backup saved to Auto-Backup/schema_backup_$TIMESTAMP.sql"
 
-          # Set output timestamp to pass to next step
-          echo "::set-output name=timestamp::$TIMESTAMP"
+          # Use new way to set output variable
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          
 
       - name: Upload backup to Supabase Storage
         env:

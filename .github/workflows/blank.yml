@@ -88,65 +88,65 @@ jobs:
             -H "Content-Type: application/octet-stream" \
             --data-binary @$FILEPATH
 
-      - name: Cleanup old backups (keep latest 20)
-        env:
-          SUPABASE_URL: ${{ secrets.PROD_PROJECT_REF }}
-          SERVICE_ROLE_KEY: ${{ secrets.PROD_SERVICE_ROLE_KEY }}
-        run: |
-          echo "Fetching list of backup folders..."
-          # List all objects under backups/
-          resp=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups?limit=1000" \
-            -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
-            -H "apikey: $SERVICE_ROLE_KEY")
-          echo "Raw response from Supabase storage API:"
-          echo "$resp" | jq .
-          # Check if bucket exists
-          if echo "$RAW_RESPONSE" | jq -e '.message? == "Bucket not found"' >/dev/null; then
-            echo "⚠️ Bucket 'backups' not found — skipping cleanup."
-            exit 0
-          fi
-          # Extract unique backup folder names (prefix before first slash)
+      # - name: Cleanup old backups (keep latest 20)
+      #   env:
+      #     SUPABASE_URL: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
+      #     SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
+      #   run: |
+      #     echo "Fetching list of backup folders..."
+      #     # List all objects under backups/
+      #     resp=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups?limit=1000" \
+      #       -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+      #       -H "apikey: $SERVICE_ROLE_KEY")
+      #     echo "Raw response from Supabase storage API:"
+      #     echo "$resp" | jq .
+      #     # Check if bucket exists
+      #     if echo "$RAW_RESPONSE" | jq -e '.message? == "Bucket not found"' >/dev/null; then
+      #       echo "⚠️ Bucket 'backups' not found — skipping cleanup."
+      #       exit 0
+      #     fi
+      #     # Extract unique backup folder names (prefix before first slash)
 
-          folders=$(echo "$resp" | jq -r '.data | map(.name) | map(split("/") | .[0]) | unique | .[]' | grep '^backup_')
-          # Check if we got folders
-          if [ -z "$folders" ]; then
-            echo "No backup folders found."
-            exit 0
-          fi
+      #     folders=$(echo "$resp" | jq -r '.data | map(.name) | map(split("/") | .[0]) | unique | .[]' | grep '^backup_')
+      #     # Check if we got folders
+      #     if [ -z "$folders" ]; then
+      #       echo "No backup folders found."
+      #       exit 0
+      #     fi
       
-          # Sort folders ascending (oldest first)
-          sorted=$(echo "$folders" | sort)
+      #     # Sort folders ascending (oldest first)
+      #     sorted=$(echo "$folders" | sort)
       
-          # Count total folders
-          total=$(echo "$sorted" | wc -l)
-          echo "Total backup folders: $total"
+      #     # Count total folders
+      #     total=$(echo "$sorted" | wc -l)
+      #     echo "Total backup folders: $total"
       
-          # Set how many to keep
-          keep=20
-          delete_count=$((total - keep))
+      #     # Set how many to keep
+      #     keep=20
+      #     delete_count=$((total - keep))
       
-          if [ $delete_count -le 0 ]; then
-            echo "No old backups to delete."
-            exit 0
-          fi
+      #     if [ $delete_count -le 0 ]; then
+      #       echo "No old backups to delete."
+      #       exit 0
+      #     fi
       
-          echo "Deleting $delete_count oldest backups..."
+      #     echo "Deleting $delete_count oldest backups..."
       
-          # Select folders to delete (oldest first)
-          to_delete=$(echo "$sorted" | head -n $delete_count)
+      #     # Select folders to delete (oldest first)
+      #     to_delete=$(echo "$sorted" | head -n $delete_count)
       
-          for folder in $to_delete; do
-            echo "Deleting backup folder: $folder"
-            # List all objects under this backup folder
-            objs=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups/$folder?limit=1000" \
-              -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
-              -H "apikey: $SERVICE_ROLE_KEY" | jq -r 'map(.name) | .[]')
+      #     for folder in $to_delete; do
+      #       echo "Deleting backup folder: $folder"
+      #       # List all objects under this backup folder
+      #       objs=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups/$folder?limit=1000" \
+      #         -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+      #         -H "apikey: $SERVICE_ROLE_KEY" | jq -r 'map(.name) | .[]')
       
-            # Delete each object
-            for obj in $objs; do
-              echo "Deleting object: $obj"
-              curl -s -X DELETE "https://$SUPABASE_URL.supabase.co/storage/v1/object/$obj" \
-                -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+      #       # Delete each object
+      #       for obj in $objs; do
+      #         echo "Deleting object: $obj"
+      #         curl -s -X DELETE "https://$SUPABASE_URL.supabase.co/storage/v1/object/$obj" \
+      #           -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
                 -H "apikey: $SERVICE_ROLE_KEY"
             done
           done

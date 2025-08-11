@@ -22,7 +22,7 @@ jobs:
           sudo apt-get update
 
       - name: Install PostgreSQL 17 client tools and gzip
-        run: sudo apt-get install -y postgresql-client-17 gzip
+        run: sudo apt-get install -y postgresql-client-17 gzip jq curl
 
       - name: Backup full DB (data + schema) compressed and schema-only
         id: backup
@@ -86,3 +86,58 @@ jobs:
             -H "apikey: $SERVICE_ROLE_KEY" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @$FILEPATH
+
+      - name: Cleanup old backups (keep latest 20)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Fetching list of backup folders..."
+          # List objects under backups/, get unique backup folders (like backup_1234567890)
+          resp=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups?limit=1000" \
+            -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+            -H "apikey: $SERVICE_ROLE_KEY")
+
+          # Extract unique backup folders (prefixes up to first slash)
+          folders=$(echo "$resp" | jq -r '.map(.name) | map(split("/")[0]) | unique | .[]' | grep '^backup_')
+
+          # Sort folders by timestamp descending (newest first)
+          sorted=$(echo "$folders" | sort -r)
+
+          # Count total folders
+          total=$(echo "$sorted" | wc -l)
+
+          echo "Total backup folders: $total"
+
+          # Calculate how many to delete
+          keep=20
+          delete_count=$((total - keep))
+
+          if [ $delete_count -le 0 ]; then
+            echo "No old backups to delete."
+            exit 0
+          fi
+
+          echo "Deleting $delete_count oldest backups..."
+
+          # Get list of folders to delete (oldest first)
+          to_delete=$(echo "$sorted" | tail -n $delete_count)
+
+          for folder in $to_delete; do
+            echo "Deleting backup folder: $folder"
+
+            # List all objects under this backup folder
+            objs=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups/$folder?limit=1000" \
+              -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+              -H "apikey: $SERVICE_ROLE_KEY" | jq -r '.map(.name) | .[]')
+
+            # Delete each object
+            for obj in $objs; do
+              echo "Deleting object: $obj"
+              curl -s -X DELETE "https://$SUPABASE_URL.supabase.co/storage/v1/object/$obj" \
+                -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+                -H "apikey: $SERVICE_ROLE_KEY"
+            done
+
+          done
+          echo "Cleanup complete."

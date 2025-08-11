@@ -147,8 +147,8 @@ jobs:
       #         echo "Deleting object: $obj"
       #         curl -s -X DELETE "https://$SUPABASE_URL.supabase.co/storage/v1/object/$obj" \
       #           -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
-                -H "apikey: $SERVICE_ROLE_KEY"
-            done
-          done
+          #       -H "apikey: $SERVICE_ROLE_KEY"
+          #   done
+          # done
       
-          echo "Cleanup complete."
+          # echo "Cleanup complete."

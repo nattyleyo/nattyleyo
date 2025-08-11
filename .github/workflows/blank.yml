@@ -1,4 +1,4 @@
-name: Test Supabase Connection with WARP
+name: Test Supabase Connection
 
 on:
   workflow_dispatch:
@@ -23,6 +23,13 @@ jobs:
             --username=$DB_USER \
             --dbname=$DB_NAME \
             --schema-only > schema_backup_$(date +%s).sql
+      
+      - name: Upload schema backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-schema-backup
+          path: schema_backup_*.sql
+
           echo "Backup complete: schema_backup_$(date +%s).sql"
 
       - name: Upload schema backup artifact

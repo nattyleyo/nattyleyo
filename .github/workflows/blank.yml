@@ -22,6 +22,6 @@ jobs:
 
       - name: Test connection to Supabase
         env:
-          PGPASSWORD: ${{ secrets.DB_PASS }}
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           psql "host=${{ secrets.DB_HOST }} user=${{ secrets.DB_USER }} dbname=${{ secrets.DB_NAME }} sslmode=require" -c "\dt"

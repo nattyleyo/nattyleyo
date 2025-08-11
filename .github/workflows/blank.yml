@@ -2,7 +2,6 @@ name: Backup Supabase Schema
 permissions:
   contents: write
 
-
 on:
   workflow_dispatch:
 
@@ -26,12 +25,13 @@ jobs:
         run: sudo apt-get install -y postgresql-client-17
 
       - name: Backup Supabase schema only
+        id: backup
         env:
-          DB_HOST: aws-0-us-east-2.pooler.supabase.com
-          DB_PORT: 5432
-          DB_USER: postgres.mlrtlpatqeqchjmafqnm
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: postgres
+          DB_HOST: ${{ secrets.PROD_DB_HOST }}
+          DB_PORT: ${{ secrets.PROD_DB_PORT }}
+          DB_USER: ${{ secrets.PROD_DB_USER }}
+          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.PROD_DB_NAME }}
         run: |
           mkdir -p Auto-Backup
           TIMESTAMP=$(date +%s)
@@ -44,12 +44,23 @@ jobs:
             --no-password > Auto-Backup/schema_backup_$TIMESTAMP.sql
           echo "Backup saved to Auto-Backup/schema_backup_$TIMESTAMP.sql"
 
-      - name: Commit and push backup
+          # Set output timestamp to pass to next step
+          echo "::set-output name=timestamp::$TIMESTAMP"
+
+      - name: Upload backup to Supabase Storage
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
+          TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Auto-Backup/schema_backup_*.sql
-          git diff --cached --quiet || git commit -m "Automated schema backup $(date +'%Y-%m-%d %H:%M:%S')"
-          git push origin HEAD:${GITHUB_REF#refs/heads/}
+          # Install supabase CLI if not installed
+          if ! command -v supabase &> /dev/null; then
+            curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+            npm install -g supabase
+          fi
+
+          # Upload the backup file to Supabase storage bucket 'backups', folder 'schema'
+          supabase storage cp Auto-Backup/schema_backup_$TIMESTAMP.sql backups/schema/schema_backup_$TIMESTAMP.sql --project-ref $SUPABASE_PROJECT_REF
+
+          echo "Backup uploaded to Supabase Storage at backups/schema/schema_backup_$TIMESTAMP.sql"

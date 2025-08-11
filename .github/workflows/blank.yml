@@ -1,20 +1,27 @@
-name: Supabase Backup (IPv4 Compatible)
-on: workflow_dispatch
+name: Test Supabase Connection with WARP
+
+on:
+  workflow_dispatch:  # manual trigger
 
 jobs:
-  backup:
+  test-connection:
     runs-on: ubuntu-latest
-    steps:
-      - name: Setup
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client dnsutils
 
-      - name: Backup via Connection Pooler
+    steps:
+      - name: Install Cloudflare WARP
         run: |
-          PGPASSWORD=${{ secrets.DB_PASSWORD }} pg_dump \
-            -h ${{ secrets.DB_HOST }} \
-            -p 6543 \  # Critical: Pooler port
-            -U postgres \
-            -d postgres \
-            --sslmode=require \
-            --file=/dev/null
-          echo "✅ Backup successful!"
+          curl https://pkg.cloudflareclient.com/install.sh | sudo bash
+          sudo systemctl start warp-svc
+          sudo warp-cli connect
+          sudo warp-cli status
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Test connection to Supabase
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASS }}
+        run: |
+          psql "host=${{ secrets.DB_HOST }} user=${{ secrets.DB_USER }} dbname=${{ secrets.DB_NAME }} sslmode=require" -c "\dt"

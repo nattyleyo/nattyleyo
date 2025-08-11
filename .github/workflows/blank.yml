@@ -27,7 +27,7 @@ jobs:
           expect -c '
           spawn sudo warp-cli registration new
           expect {
-            "Accept Terms of Service and Privacy Policy? [y/N]" { send "y\r"; exp_continue }
+            "Accept Terms of Service and Privacy Policy? \[y/N\]" { send "y\r"; exp_continue }
             timeout { puts "Timed out waiting for ToS prompt"; exit 1 }
             eof
           }

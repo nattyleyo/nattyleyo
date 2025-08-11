@@ -21,7 +21,7 @@ jobs:
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
 
-      - name: Install PostgreSQL 17 client tools
+      - name: Install PostgreSQL 17 client tools and gzip
         run: sudo apt-get install -y postgresql-client-17 gzip
 
       - name: Backup full DB (data + schema) compressed and schema-only
@@ -36,7 +36,7 @@ jobs:
           mkdir -p Auto-Backup
           TIMESTAMP=$(date +%s)
 
-          # Full dump with data + schema compressed
+          # Full dump (data+schema) compressed
           PGPASSWORD=$DB_PASSWORD pg_dump \
             --host=$DB_HOST \
             --port=$DB_PORT \
@@ -44,7 +44,7 @@ jobs:
             --dbname=$DB_NAME \
             --no-password | gzip > Auto-Backup/backup_${TIMESTAMP}_full.sql.gz
 
-          # Schema-only dump uncompressed
+          # Schema-only dump (uncompressed)
           PGPASSWORD=$DB_PASSWORD pg_dump \
             --host=$DB_HOST \
             --port=$DB_PORT \
@@ -53,27 +53,36 @@ jobs:
             --schema-only \
             --no-password > Auto-Backup/backup_${TIMESTAMP}_schema.sql
 
-          echo "Backups created at Auto-Backup/backup_${TIMESTAMP}_full.sql.gz and backup_${TIMESTAMP}_schema.sql"
-
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
 
-      - name: Setup Supabase CLI
-        run: |
-          curl -L "https://github.com/supabase/cli/releases/latest/download/supabase_$(uname -s)_$(uname -m).tar.gz" -o supabase.tar.gz
-          tar -xzf supabase.tar.gz
-          sudo mv supabase /usr/local/bin/
-          supabase --version
-
-      - name: Upload backups to Supabase Storage
+      - name: Upload full backup (compressed) to Supabase Storage via REST API
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}  # like sqwzjhoqqgaruscfczaq
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
           TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
         run: |
-          # Upload full compressed dump
-          supabase storage cp Auto-Backup/backup_${TIMESTAMP}_full.sql.gz backups/backup_${TIMESTAMP}/backup_full.sql.gz --project-ref $SUPABASE_PROJECT_REF
+          FILEPATH="Auto-Backup/backup_${TIMESTAMP}_full.sql.gz"
+          TARGET_PATH="backups/backup_${TIMESTAMP}/backup_full.sql.gz"
+          echo "Uploading $FILEPATH to $TARGET_PATH"
 
-          # Upload schema-only dump
-          supabase storage cp Auto-Backup/backup_${TIMESTAMP}_schema.sql backups/backup_${TIMESTAMP}/backup_schema_only.sql --project-ref $SUPABASE_PROJECT_REF
+          curl -X POST "https://$SUPABASE_URL.supabase.co/storage/v1/object/$TARGET_PATH" \
+            -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+            -H "apikey: $SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @$FILEPATH
 
-          echo "Backups uploaded to Supabase Storage under backups/backup_${TIMESTAMP}/"
+      - name: Upload schema-only backup to Supabase Storage via REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
+          TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
+        run: |
+          FILEPATH="Auto-Backup/backup_${TIMESTAMP}_schema.sql"
+          TARGET_PATH="backups/backup_${TIMESTAMP}/backup_schema_only.sql"
+          echo "Uploading $FILEPATH to $TARGET_PATH"
+
+          curl -X POST "https://$SUPABASE_URL.supabase.co/storage/v1/object/$TARGET_PATH" \
+            -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+            -H "apikey: $SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @$FILEPATH

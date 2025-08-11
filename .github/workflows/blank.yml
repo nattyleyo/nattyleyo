@@ -44,14 +44,15 @@ jobs:
             --no-password > Auto-Backup/schema_backup_$TIMESTAMP.sql
           echo "Backup saved to Auto-Backup/schema_backup_$TIMESTAMP.sql"
 
-          # Use new way to set output variable
+          # Set output timestamp for next step
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
-          
-      - name: Setup Supabase CLI
+
+      - name: Install Supabase CLI binary
         run: |
-          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          npm install -g supabase
+          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_$(uname -s)_$(uname -m).tar.gz -o supabase.tar.gz
+          tar -xzf supabase.tar.gz
+          sudo mv supabase /usr/local/bin/
+          supabase --version  # confirm installation
 
       - name: Upload backup to Supabase Storage
         env:

@@ -100,8 +100,8 @@ jobs:
             -H "apikey: $SERVICE_ROLE_KEY")
       
           # Extract unique backup folder names (prefix before first slash)
-          folders=$(echo "$resp" | jq -r 'map(.name) | map(split("/") | .[0]) | unique | .[]' | grep '^backup_')
-      
+          folders=$(echo "$resp" | jq -r '.data | map(.name) | map(split("/") | .[0]) | unique | .[]' | grep '^backup_')
+
           # Check if we got folders
           if [ -z "$folders" ]; then
             echo "No backup folders found."

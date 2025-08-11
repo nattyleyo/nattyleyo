@@ -1,4 +1,4 @@
-name: Backup Supabase Schema
+name: Backup Supabase Full Database
 permissions:
   contents: write
 
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  backup-schema:
+  backup-full-db:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,7 @@ jobs:
       - name: Install PostgreSQL 17 client tools
         run: sudo apt-get install -y postgresql-client-17
 
-      - name: Backup Supabase schema only
+      - name: Backup full database (schema + data) with compression
         id: backup
         env:
           DB_HOST: ${{ secrets.PROD_DB_HOST }}
@@ -40,11 +40,10 @@ jobs:
             --port=$DB_PORT \
             --username=$DB_USER \
             --dbname=$DB_NAME \
-            --schema-only \
-            --no-password > Auto-Backup/schema_backup_$TIMESTAMP.sql
-          echo "Backup saved to Auto-Backup/schema_backup_$TIMESTAMP.sql"
+            --no-password | gzip > Auto-Backup/full_backup_$TIMESTAMP.sql.gz
+          echo "Backup saved to Auto-Backup/full_backup_$TIMESTAMP.sql.gz"
 
-          # Set output timestamp for next step
+          # Pass timestamp to next step
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
 
       - name: Upload backup to Supabase Storage via REST API
@@ -53,8 +52,10 @@ jobs:
           SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
           TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
         run: |
-          curl -X POST "https://$SUPABASE_URL.supabase.co/storage/v1/object/backups/schema/schema_backup_$TIMESTAMP.sql" \
+          curl -X POST "https://$SUPABASE_URL.supabase.co/storage/v1/object/backups/full/full_backup_$TIMESTAMP.sql.gz" \
             -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
             -H "apikey: $SERVICE_ROLE_KEY" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @Auto-Backup/schema_backup_$TIMESTAMP.sql
+            --data-binary @Auto-Backup/full_backup_$TIMESTAMP.sql.gz
+
+          echo "Backup uploaded to Supabase Storage at backups/full/full_backup_$TIMESTAMP.sql.gz"

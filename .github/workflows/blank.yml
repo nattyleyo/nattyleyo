@@ -49,10 +49,10 @@ jobs:
 
       - name: Install Supabase CLI binary
         run: |
-          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_$(uname -s)_$(uname -m).tar.gz -o supabase.tar.gz
-          tar -xzf supabase.tar.gz
+          curl -L https://github.com/supabase/cli/releases/latest/download/supabase_$(uname -s)_$(uname -m).tar.xz -o supabase.tar.xz
+          tar -xf supabase.tar.xz
           sudo mv supabase /usr/local/bin/
-          supabase --version  # confirm installation
+          supabase --version
 
       - name: Upload backup to Supabase Storage
         env:

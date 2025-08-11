@@ -71,9 +71,9 @@ jobs:
           TIMESTAMP: ${{ steps.backup.outputs.timestamp }}
         run: |
           # Upload full compressed dump
-          supabase storage cp Auto-Backup/backup_${TIMESTAMP}_full.sql.gz backups/backup_${TIMESTAMP}/backup_${TIMESTAMP}_full.sql.gz --project-ref $SUPABASE_PROJECT_REF
+          supabase storage cp Auto-Backup/backup_${TIMESTAMP}_full.sql.gz backups/backup_${TIMESTAMP}/backup_full.sql.gz --project-ref $SUPABASE_PROJECT_REF
 
           # Upload schema-only dump
-          supabase storage cp Auto-Backup/backup_${TIMESTAMP}_schema.sql backups/backup_${TIMESTAMP}/backup_${TIMESTAMP}_schema.sql --project-ref $SUPABASE_PROJECT_REF
+          supabase storage cp Auto-Backup/backup_${TIMESTAMP}_schema.sql backups/backup_${TIMESTAMP}/backup_schema_only.sql --project-ref $SUPABASE_PROJECT_REF
 
           echo "Backups uploaded to Supabase Storage under backups/backup_${TIMESTAMP}/"

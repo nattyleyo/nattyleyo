@@ -16,6 +16,3 @@ jobs:
           sudo apt-get install -y cloudflare-warp
       - name: Show warp-cli registration help
         run: warp-cli registration --help
-          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: |
-          psql "host=${{ secrets.DB_HOST }} user=${{ secrets.DB_USER }} dbname=${{ secrets.DB_NAME }} sslmode=require" -c "\dt"

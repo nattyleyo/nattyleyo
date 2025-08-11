@@ -15,7 +15,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cloudflare-warp
           sudo systemctl start warp-svc
-          sudo warp-cli connect
+          sudo warp-cli connect --accept-tos
           sudo warp-cli status
 
       - name: Install PostgreSQL client

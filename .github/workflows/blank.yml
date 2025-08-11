@@ -94,44 +94,48 @@ jobs:
           SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
         run: |
           echo "Fetching list of backup folders..."
-          # List objects under backups/, get unique backup folders (like backup_1234567890)
+          # List all objects under backups/
           resp=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups?limit=1000" \
             -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
             -H "apikey: $SERVICE_ROLE_KEY")
-
-          # Extract unique backup folders (prefixes up to first slash)
-          folders=$(echo "$resp" | jq -r '.map(.name) | map(split("/")[0]) | unique | .[]' | grep '^backup_')
-
-          # Sort folders by timestamp descending (newest first)
-          sorted=$(echo "$folders" | sort -r)
-
+      
+          # Extract unique backup folder names (prefix before first slash)
+          folders=$(echo "$resp" | jq -r 'map(.name) | map(split("/") | .[0]) | unique | .[]' | grep '^backup_')
+      
+          # Check if we got folders
+          if [ -z "$folders" ]; then
+            echo "No backup folders found."
+            exit 0
+          fi
+      
+          # Sort folders ascending (oldest first)
+          sorted=$(echo "$folders" | sort)
+      
           # Count total folders
           total=$(echo "$sorted" | wc -l)
-
           echo "Total backup folders: $total"
-
-          # Calculate how many to delete
+      
+          # Set how many to keep
           keep=20
           delete_count=$((total - keep))
-
+      
           if [ $delete_count -le 0 ]; then
             echo "No old backups to delete."
             exit 0
           fi
-
+      
           echo "Deleting $delete_count oldest backups..."
-
-          # Get list of folders to delete (oldest first)
-          to_delete=$(echo "$sorted" | tail -n $delete_count)
-
+      
+          # Select folders to delete (oldest first)
+          to_delete=$(echo "$sorted" | head -n $delete_count)
+      
           for folder in $to_delete; do
             echo "Deleting backup folder: $folder"
-
             # List all objects under this backup folder
             objs=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups/$folder?limit=1000" \
               -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
-              -H "apikey: $SERVICE_ROLE_KEY" | jq -r '.map(.name) | .[]')
-
+              -H "apikey: $SERVICE_ROLE_KEY" | jq -r 'map(.name) | .[]')
+      
             # Delete each object
             for obj in $objs; do
               echo "Deleting object: $obj"
@@ -139,6 +143,6 @@ jobs:
                 -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
                 -H "apikey: $SERVICE_ROLE_KEY"
             done
-
           done
+      
           echo "Cleanup complete."

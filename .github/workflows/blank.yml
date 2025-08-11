@@ -8,15 +8,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cloudflare-warp expect
-
-      - name: Add Cloudflare repo and install warp client
+       - name: Add Cloudflare repo and key
         run: |
           curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-          sudo apt-get update
-          sudo apt-get install -y cloudflare-warp
+
+      - name: Update apt cache
+        run: sudo apt-get update
+
+      - name: Install cloudflare-warp and expect
+        run: sudo apt-get install -y cloudflare-warp expect
 
       - name: Start WARP service
         run: sudo systemctl start warp-svc

@@ -90,8 +90,8 @@ jobs:
 
       - name: Cleanup old backups (keep latest 20)
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_BACKUP_PROJECT_REF }}
-          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_BACKUP_SERVICE_ROLE_KEY }}
+          SUPABASE_URL: ${{ secrets.PROD_PROJECT_REF }}
+          SERVICE_ROLE_KEY: ${{ secrets.PROD_SERVICE_ROLE_KEY }}
         run: |
           echo "Fetching list of backup folders..."
           # List all objects under backups/

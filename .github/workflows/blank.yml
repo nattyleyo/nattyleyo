@@ -8,12 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Cloudflare WARP
-        run: |
-          curl https://pkg.cloudflareclient.com/install.sh | sudo bash
-          sudo systemctl start warp-svc
-          sudo warp-cli connect
-          sudo warp-cli status
+      - name: Setup WARP
+        uses: fscarmen/warp-on-actions@v1.0
 
       - name: Install PostgreSQL client
         run: |

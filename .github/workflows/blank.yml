@@ -8,43 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Add Cloudflare repo and key
-        run: |
-          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-
-      - name: Update apt cache
-        run: sudo apt-get update
-
-      - name: Install cloudflare-warp and expect
-        run: sudo apt-get install -y cloudflare-warp expect
-
-      - name: Start WARP service
-        run: sudo systemctl start warp-svc
-
-      - name: Register WARP (accept ToS) with expect script
-        run: |
-          expect -c '
-          spawn sudo warp-cli registration new
-          expect {
-            "Accept Terms of Service and Privacy Policy? \[y/N\]" { send "y\r"; exp_continue }
-            timeout { puts "Timed out waiting for ToS prompt"; exit 1 }
-            eof
-          }
-          '
-
-
-      - name: Connect WARP
-        run: |
-          sudo warp-cli connect
-          sudo warp-cli status
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Test connection to Supabase
+      - name: Backup Supabase schema only
         env:
-          PGPASSWORD: ${{ secrets.DB_PASS }}
+          DB_HOST: aws-0-us-east-2.pooler.supabase.com
+          DB_PORT: 5432
+          DB_USER: postgres.mlrtlpatqeqchjmafqnm
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: postgres
         run: |
-          psql "host=${{ secrets.DB_HOST }} user=${{ secrets.DB_USER }} dbname=${{ secrets.DB_NAME }} sslmode=require" -c "\dt"
+          PGPASSWORD=$DB_PASSWORD pg_dump \
+            --host=$DB_HOST \
+            --port=$DB_PORT \
+            --username=$DB_USER \
+            --dbname=$DB_NAME \
+            --schema-only > schema_backup_$(date +%s).sql

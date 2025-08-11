@@ -4,19 +4,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  
   test-connection:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Add PostgreSQL Apt Repository for v17
-        run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo apt-get update
-
-      - name: Install PostgreSQL 17 client tools
-        run: sudo apt-get install -y postgresql-client-17
-
       - name: Backup Supabase schema only
         env:
           DB_HOST: aws-0-us-east-2.pooler.supabase.com
@@ -31,6 +22,11 @@ jobs:
             --port=$DB_PORT \
             --username=$DB_USER \
             --dbname=$DB_NAME \
-            --schema-only \
-            --no-password > schema_backup_$(date +%s).sql
+            --schema-only > schema_backup_$(date +%s).sql
           echo "Backup complete: schema_backup_$(date +%s).sql"
+
+      - name: Upload schema backup artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: supabase-schema-backup
+          path: schema_backup_*.sql

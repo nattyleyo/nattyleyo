@@ -98,7 +98,9 @@ jobs:
           resp=$(curl -s -X GET "https://$SUPABASE_URL.supabase.co/storage/v1/object/list/backups?limit=1000" \
             -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
             -H "apikey: $SERVICE_ROLE_KEY")
-      
+          echo "Raw response from Supabase storage API:"
+          echo "$resp" | jq .
+          
           # Extract unique backup folder names (prefix before first slash)
           folders=$(echo "$resp" | jq -r '.data | map(.name) | map(split("/") | .[0]) | unique | .[]' | grep '^backup_')
 

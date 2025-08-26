@@ -109,3 +109,10 @@ jobs:
             echo "Applying $MIG..."
             psql ${{ secrets.SUPABASE_PROD_DB_URL }} -f "$MIG" || echo "Skipped $MIG due to error (already applied or missing object)"
           done
+
+      - name: Deploy Supabase Edge Functions
+        run: |
+          echo "Deploying all Edge Functions to Prod..."
+          supabase functions deploy --all \
+            --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
+            --token ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }}

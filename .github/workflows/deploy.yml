@@ -1,35 +1,28 @@
 name: Supabase Migrations
 
 on:
-  workflow_dispatch: # run manually for now
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   generate-migration:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Install Supabase CLI
         run: |
-          echo "Installing Supabase CLI..."
           TMP_DIR=$(mktemp -d)
           curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o $TMP_DIR/supabase.tar.gz
           tar -xzf $TMP_DIR/supabase.tar.gz -C $TMP_DIR
           sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
           rm -rf $TMP_DIR
-          supabase --version
-
-
-
 
       - name: Generate migration from Test DB
         run: |
           TIMESTAMP=$(date +%s)
-          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} \
-            --use-migra > supabase/migrations/${TIMESTAMP}_auto.sql
+          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > supabase/migrations/${TIMESTAMP}_auto.sql
 
       - name: Commit migration
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -38,23 +31,18 @@ jobs:
 
   deploy-to-prod:
     needs: generate-migration
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Install Supabase CLI
         run: |
-          echo "Installing Supabase CLI..."
           TMP_DIR=$(mktemp -d)
           curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o $TMP_DIR/supabase.tar.gz
           tar -xzf $TMP_DIR/supabase.tar.gz -C $TMP_DIR
           sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
           rm -rf $TMP_DIR
-          supabase --version
-
-
-
 
       - name: Apply migrations to Prod
         run: |

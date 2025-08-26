@@ -57,10 +57,16 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout latest repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # make sure we can pull latest changes
+
+      - name: Pull latest changes
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
 
       - name: Install Supabase CLI
         run: |
@@ -71,12 +77,9 @@ jobs:
           rm -rf $TMP_DIR
 
       - name: Apply migrations to Prod safely
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p supabase/migrations supabase/baselines
 
-          # Check if Prod already has supabase_migrations table
           EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
 
           if [ "$EXISTS" != "1" ]; then
@@ -84,10 +87,7 @@ jobs:
             TIMESTAMP=$(date +%s)
             BASELINE_FILE="supabase/baselines/${TIMESTAMP}_baseline.sql"
             
-            # Dump schema from Test DB
             supabase db dump --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} > "$BASELINE_FILE"
-
-            # Apply baseline directly (NOT committed into migrations/)
             psql ${{ secrets.SUPABASE_PROD_DB_URL }} < "$BASELINE_FILE"
           fi
 

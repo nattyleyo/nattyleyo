@@ -26,9 +26,11 @@ jobs:
 
       - name: Generate migration from Test DB
         run: |
-          mkdir -p supabase/migrations      # create folder if missing
+          mkdir -p supabase/migrations
           TIMESTAMP=$(date +%s)
-          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > supabase/migrations/${TIMESTAMP}_auto.sql
+          MIGRATION_FILE="supabase/migrations/${TIMESTAMP}_auto.sql"
+          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > $MIGRATION_FILE
+          echo "Generated migration: $MIGRATION_FILE"
 
       - name: Commit and push migration
         env:
@@ -60,4 +62,14 @@ jobs:
 
       - name: Apply migrations to Prod
         run: |
-          supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+          # Check if supabase_migrations table exists
+          EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
+
+          if [ "$EXISTS" != "1" ]; then
+            echo "No migrations applied yet. Using baseline approach..."
+            # Apply the first migration safely
+            supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }} --force
+          else
+            echo "Migrations exist. Applying incremental migrations..."
+            supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+          fi

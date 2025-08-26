@@ -28,17 +28,26 @@ jobs:
         run: |
           mkdir -p supabase/migrations
           TIMESTAMP=$(date +%s)
-          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > supabase/migrations/${TIMESTAMP}_auto.sql
+          MIGRATION_FILE="supabase/migrations/${TIMESTAMP}_auto.sql"
+          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > $MIGRATION_FILE
 
-      - name: Commit and push migration
+      - name: Commit and push migration safely
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add supabase/migrations/*.sql
-          git diff --cached --quiet || git commit -m "chore: add migration from Test DB $(date +'%Y-%m-%d %H:%M:%S')"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
+          git add "$MIGRATION_FILE"
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: add migration from Test DB $(date +'%Y-%m-%d %H:%M:%S')"
+            # Pull latest changes and rebase
+            git pull --rebase https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
+            # Push commit
+            git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
+          else
+            echo "No migration changes detected. Skipping commit."
+          fi
 
   deploy-to-prod:
     needs: generate-migration
@@ -58,7 +67,7 @@ jobs:
           sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
           rm -rf $TMP_DIR
 
-      - name: Apply migrations to Prod (safe baseline)
+      - name: Apply migrations to Prod safely
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -68,20 +77,24 @@ jobs:
           EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
 
           if [ "$EXISTS" != "1" ]; then
-            echo "No migrations applied yet. Creating and committing baseline migration..."
+            echo "No migrations applied yet. Creating baseline migration..."
             TIMESTAMP=$(date +%s)
             BASELINE_FILE="supabase/migrations/${TIMESTAMP}_baseline.sql"
             supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > $BASELINE_FILE
 
-            # Commit baseline migration to GitHub
+            # Commit baseline migration safely
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add $BASELINE_FILE
-            git commit -m "chore: add baseline migration $(date +'%Y-%m-%d %H:%M:%S')"
-            git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
+
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: add baseline migration $(date +'%Y-%m-%d %H:%M:%S')"
+              git pull --rebase https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
+              git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
+            fi
           else
             echo "Migrations already exist. Applying incremental migrations..."
           fi
 
-          # Apply all migrations (baseline + incremental)
+          # Apply all migrations to Prod
           supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}

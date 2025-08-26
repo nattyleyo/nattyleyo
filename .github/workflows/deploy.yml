@@ -110,11 +110,10 @@ jobs:
             psql ${{ secrets.SUPABASE_PROD_DB_URL }} -f "$MIG" || echo "Skipped $MIG due to error (already applied or missing object)"
           done
 
-      - name: Authenticate Supabase CLI
+      - name: Deploy Supabase Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }}
         run: |
-          supabase login --service-role ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }}
-          supabase link --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }}
-
-      - name: Deploy Edge Functions
-        run: |
-          supabase functions deploy --all --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} --yes
+          supabase functions deploy --all \
+            --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
+            --yes

@@ -24,26 +24,30 @@ jobs:
           sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
           rm -rf $TMP_DIR
 
-      - name: Generate incremental migration from Test DB
-        run: |
-          mkdir -p supabase/migrations
-          TIMESTAMP=$(date +%s)
-          INCREMENTAL_FILE="supabase/migrations/${TIMESTAMP}_auto.sql"
-          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > "$INCREMENTAL_FILE"
+      - name: Ensure migrations folder exists
+        run: mkdir -p supabase/migrations
 
-      - name: Commit and push incremental migration safely
+      - name: Generate migration from Test DB
+        run: |
+          TIMESTAMP=$(date +%s)
+          MIGRATION_FILE="supabase/migrations/${TIMESTAMP}_auto.sql"
+          supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > "$MIGRATION_FILE"
+
+      - name: Commit and push migration safely
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -s "$INCREMENTAL_FILE" ]; then
-            git add "$INCREMENTAL_FILE"
+
+          if [ -s "$MIGRATION_FILE" ]; then
+            git add "$MIGRATION_FILE"
             git commit -m "chore: add incremental migration $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
             git pull --rebase https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
             git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
           else
             echo "No migration changes detected. Skipping commit."
+            rm -f "$MIGRATION_FILE"
           fi
 
   deploy-to-prod:
@@ -73,11 +77,13 @@ jobs:
           # Check if Prod is empty
           EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
 
-          if [ "$EXISTS" != "1" ]; then
-            echo "Empty Prod detected. Creating full baseline from Test DB..."
+          # Check if baseline exists in repo
+          BASELINE_EXISTS=$(ls supabase/migrations/*baseline.sql 2>/dev/null || true)
+
+          if [ "$EXISTS" != "1" ] && [ -z "$BASELINE_EXISTS" ]; then
+            echo "Empty Prod detected and no baseline in repo. Creating full baseline from Test DB..."
             TIMESTAMP=$(date +%s)
             BASELINE_FILE="supabase/migrations/${TIMESTAMP}_baseline.sql"
-            # Use full dump instead of db diff for baseline
             supabase db dump --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} > "$BASELINE_FILE"
 
             # Commit baseline safely

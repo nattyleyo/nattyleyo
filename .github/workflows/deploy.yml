@@ -112,8 +112,15 @@ jobs:
 
       - name: Deploy Supabase Edge Functions
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_PROD_ACCESS_TOKEN }}
         run: |
-          supabase functions deploy --all \
-            --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
-            --yes
+          FUNCTIONS_DIR="supabase/functions"
+          for FUNC in "$FUNCTIONS_DIR"/*; do
+            if [ -d "$FUNC" ]; then
+              NAME=$(basename "$FUNC")
+              echo "Deploying Edge Function: $NAME"
+              supabase functions deploy "$NAME" \
+                --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
+                --yes
+            fi
+          done

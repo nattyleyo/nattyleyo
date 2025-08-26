@@ -74,15 +74,15 @@ jobs:
         run: |
           mkdir -p supabase/migrations
 
-          # Check if Prod is empty
-          EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc \
-            "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
+          # Check if Prod is truly empty (no tables in public schema)
+          TABLE_COUNT=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc \
+            "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';")
 
           # Check if baseline exists in repo
           BASELINE_EXISTS=$(ls supabase/migrations/*baseline.sql 2>/dev/null || true)
 
-          if [ "$EXISTS" != "1" ] && [ -z "$BASELINE_EXISTS" ]; then
-            echo "Empty Prod detected and no baseline in repo. Creating full baseline from Test DB..."
+          if [ "$TABLE_COUNT" -eq "0" ] && [ -z "$BASELINE_EXISTS" ]; then
+            echo "Prod is empty and no baseline exists. Creating full baseline..."
             TIMESTAMP=$(date +%s)
             BASELINE_FILE="supabase/migrations/${TIMESTAMP}_baseline.sql"
             supabase db dump --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} > "$BASELINE_FILE"
@@ -99,6 +99,7 @@ jobs:
             supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
 
           else
-            echo "Existing Prod detected or baseline already exists. Applying only incremental migrations..."
+            echo "Prod is not empty or baseline already exists. Skipping baseline."
+            echo "Applying only incremental migrations..."
             supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
           fi

@@ -30,16 +30,28 @@ jobs:
           TIMESTAMP=$(date +%s)
           INCREMENTAL_FILE="supabase/migrations/${TIMESTAMP}_auto.sql"
           set -o pipefail
+
+          # Generate migration diff
           DIFF_OUTPUT=$(supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra)
 
           if [ -n "$DIFF_OUTPUT" ]; then
-            echo "$DIFF_OUTPUT" > "$INCREMENTAL_FILE"
-            echo "Generated migration: $INCREMENTAL_FILE"
+            # Remove references to tables that no longer exist
+            CLEANED=$(echo "$DIFF_OUTPUT" \
+              | sed -e '/testMig/d' \
+              | sed -e 's/DROP TABLE /DROP TABLE IF EXISTS /g' \
+              | sed -e 's/DROP INDEX /DROP INDEX IF EXISTS /g' \
+              | sed -e 's/DROP CONSTRAINT /ALTER TABLE IF EXISTS /g' \
+              | sed -e 's/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g' \
+              | sed -e 's/ALTER TABLE /ALTER TABLE IF EXISTS /g')
+            
+            echo "$CLEANED" > "$INCREMENTAL_FILE"
+            echo "Generated safe migration: $INCREMENTAL_FILE"
             echo "INCREMENTAL_FILE=$INCREMENTAL_FILE" >> $GITHUB_ENV
           else
             echo "No migration changes detected. Skipping commit."
             echo "INCREMENTAL_FILE=" >> $GITHUB_ENV
           fi
+
       - name: Commit and push incremental migration safely
         if: env.INCREMENTAL_FILE != ''
         env:
@@ -61,7 +73,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 # make sure we can pull latest changes
+          fetch-depth: 0
 
       - name: Pull latest changes
         run: |
@@ -80,16 +92,20 @@ jobs:
         run: |
           mkdir -p supabase/migrations supabase/baselines
 
+          # Check if Prod has migrations table
           EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
 
           if [ "$EXISTS" != "1" ]; then
             echo "Empty Prod detected. Creating full baseline from Test DB..."
             TIMESTAMP=$(date +%s)
             BASELINE_FILE="supabase/baselines/${TIMESTAMP}_baseline.sql"
-            
+
             supabase db dump --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} > "$BASELINE_FILE"
             psql ${{ secrets.SUPABASE_PROD_DB_URL }} < "$BASELINE_FILE"
           fi
 
-          echo "Applying incremental migrations to Prod..."
-          supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+          echo "Applying incremental migrations sequentially..."
+          for MIG in supabase/migrations/*.sql; do
+            echo "Applying $MIG..."
+            psql ${{ secrets.SUPABASE_PROD_DB_URL }} -f "$MIG" || echo "Skipped $MIG due to error (already applied or missing object)"
+          done

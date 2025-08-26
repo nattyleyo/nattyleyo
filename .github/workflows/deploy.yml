@@ -75,7 +75,8 @@ jobs:
           mkdir -p supabase/migrations
 
           # Check if Prod is empty
-          EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
+          EXISTS=$(psql ${{ secrets.SUPABASE_PROD_DB_URL }} -tAc \
+            "SELECT 1 FROM information_schema.tables WHERE table_name='supabase_migrations';")
 
           # Check if baseline exists in repo
           BASELINE_EXISTS=$(ls supabase/migrations/*baseline.sql 2>/dev/null || true)
@@ -93,7 +94,11 @@ jobs:
             git commit -m "chore: add baseline migration $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
             git pull --rebase https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
             git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
-          fi
 
-          echo "Applying all migrations to Prod..."
-          supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+            echo "Applying baseline migration to Prod..."
+            supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+
+          else
+            echo "Existing Prod detected or baseline already exists. Applying only incremental migrations..."
+            supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+          fi

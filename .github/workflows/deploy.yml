@@ -112,7 +112,12 @@ jobs:
 
       - name: Deploy Supabase Edge Functions
         run: |
-          echo "Deploying all Edge Functions to Prod..."
-          supabase functions deploy --all \
-            --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
-            --token ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }}
+          FUNCTIONS_DIR="supabase/functions"
+          for FUNC in "$FUNCTIONS_DIR"/*; do
+            NAME=$(basename "$FUNC")
+            echo "Deploying Edge Function: $NAME"
+            supabase functions deploy "$NAME" \
+              --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
+              --token ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }} \
+              --yes
+          done

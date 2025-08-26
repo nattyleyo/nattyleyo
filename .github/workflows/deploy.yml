@@ -21,6 +21,7 @@ jobs:
 
       - name: Generate migration from Test DB
         run: |
+          mkdir -p supabase/migrations      # create folder if missing
           TIMESTAMP=$(date +%s)
           supabase db diff --db-url ${{ secrets.SUPABASE_TEST_DB_URL }} --use-migra > supabase/migrations/${TIMESTAMP}_auto.sql
 

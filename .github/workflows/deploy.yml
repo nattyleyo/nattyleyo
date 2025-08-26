@@ -24,10 +24,6 @@ jobs:
           sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
           rm -rf $TMP_DIR
 
-      - name: Pull latest schema from Test DB
-        run: |
-          supabase db pull --db-url ${{ secrets.SUPABASE_TEST_DB_URL }}
-
       - name: Generate incremental migration from Test DB
         run: |
           mkdir -p supabase/migrations

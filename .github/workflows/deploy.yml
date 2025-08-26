@@ -14,10 +14,14 @@ jobs:
 
       - name: Install Supabase CLI
         run: |
-          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
-          tar -xzf supabase.tar.gz
-          sudo mv -f supabase /usr/local/bin/supabase
-          rm supabase.tar.gz
+          echo "Installing Supabase CLI..."
+          TMP_DIR=$(mktemp -d)
+          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o $TMP_DIR/supabase.tar.gz
+          tar -xzf $TMP_DIR/supabase.tar.gz -C $TMP_DIR
+          sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
+          rm -rf $TMP_DIR
+          supabase --version
+
 
 
 
@@ -41,10 +45,14 @@ jobs:
 
       - name: Install Supabase CLI
         run: |
-          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
-          tar -xzf supabase.tar.gz
-          sudo mv -f supabase /usr/local/bin/supabase
-          rm supabase.tar.gz
+          echo "Installing Supabase CLI..."
+          TMP_DIR=$(mktemp -d)
+          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o $TMP_DIR/supabase.tar.gz
+          tar -xzf $TMP_DIR/supabase.tar.gz -C $TMP_DIR
+          sudo mv -f $TMP_DIR/supabase /usr/local/bin/supabase
+          rm -rf $TMP_DIR
+          supabase --version
+
 
 
 

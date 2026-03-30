@@ -1,5 +1,5 @@
 
-<h1 align="center">Hi 👋, I'm Natnael Meseret</h1>
+<h1 align="center">Hi 👋, I'm Natnael Werma</h1>
 <h3 align="center">
   I’m passionate about coding and learning new technologies that can help me
   build better software.

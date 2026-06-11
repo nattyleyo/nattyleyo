@@ -1,50 +1,118 @@
-
 <h1 align="center">Hi 👋, I'm Natnael Werma</h1>
+
 <h3 align="center">
-  I’m passionate about coding and learning new technologies that can help me
-  build better software.
+Software Engineer | Full-Stack Developer | AI Enthusiast
 </h3>
 
-<p align="left">
-  <img
-    src="https://komarev.com/ghpvc/?username=nattyleyo&label=Profile%20views&color=0e75b6&style=flat"
-    alt="nattyleyo"
-  />
+<p align="center">
+Building scalable web applications with modern technologies.
 </p>
 
-## 💻 Tech Stack:
-
-![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white) ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white) ![GraphQL](https://img.shields.io/badge/-GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white) ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white) ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase) ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white) ![Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C7B7) ![Render](https://img.shields.io/badge/Render-%46E3B7.svg?style=for-the-badge&logo=render&logoColor=white) ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white) ![Chart.js](https://img.shields.io/badge/chart.js-F5788D.svg?style=for-the-badge&logo=chart.js&logoColor=white) ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB) ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi) ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)  ![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white) ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB) ![Pug](https://img.shields.io/badge/Pug-FFF?style=for-the-badge&logo=pug&logoColor=A86454) ![Vue.js](https://img.shields.io/badge/vue.js-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D) ![Yarn](https://img.shields.io/badge/yarn-%232C8EBB.svg?style=for-the-badge&logo=yarn&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white) ![Three js](https://img.shields.io/badge/threejs-black?style=for-the-badge&logo=three.js&logoColor=white) ![Apache](https://img.shields.io/badge/apache-%23D42029.svg?style=for-the-badge&logo=apache&logoColor=white) ![MySQL](https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white) ![Firebase](https://img.shields.io/badge/firebase-a08021?style=for-the-badge&logo=firebase&logoColor=ffcd34) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) ![Canva](https://img.shields.io/badge/Canva-%2300C4CC.svg?style=for-the-badge&logo=Canva&logoColor=white) ![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white) ![Framer](https://img.shields.io/badge/Framer-black?style=for-the-badge&logo=framer&logoColor=blue) ![Sketch](https://img.shields.io/badge/Sketch-FFB387?style=for-the-badge&logo=sketch&logoColor=black)
-
-## 🏆 GitHub Trophies
- ![](https://github-profile-trophy.vercel.app/?username=nattyleyo&theme=monokai&no-frame=false&no-bg=true&margin-w=4)
-
-# 📊 GitHub Stats:
-
-<p >
-  
-![](https://github-readme-streak-stats.herokuapp.com/?user=nattyleyo&theme=dark&hide_border=false)
-![](https://github-readme-stats.vercel.app/api?username=nattyleyo&theme=dark&hide_border=false&include_all_commits=false&count_private=true)
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=nattyleyo&label=Profile%20Views&color=0e75b6&style=flat" alt="Profile Views" />
 </p>
 
-<p >
+<br>
 
-### 🔝 Top Contributed Repo
-![](https://github-contributor-stats.vercel.app/api?username=nattyleyo&limit=5&theme=dark&combine_all_yearly_contributions=true)
+<h2>🚀 About Me</h2>
 
+<ul>
+  <li>🎓 BSc in Software Engineering from Addis Ababa Science and Technology University (AASTU)</li>
+  <li>📊 Graduated with a CGPA of <strong>3.74</strong></li>
+  <li>🧩 Solved <strong>850+ Algorithm & Data Structure Problems</strong></li>
+  <li>💻 Full-Stack Developer specializing in modern web technologies</li>
+  <li>🤖 Passionate about AI, LLMs, and Automation</li>
+  <li>🌱 Continuously learning and building impactful software</li>
+</ul>
+
+<br>
+
+<h2>🏅 Highlights</h2>
+
+<ul>
+  <li>🚀 Experience building production-ready applications</li>
+  <li>🏆 A2SV Participant</li>
+  <li>⚡ Strong Software Engineering foundation</li>
+  <li>🔍 Passionate about scalable system design</li>
+</ul>
+
+<br>
+
+<h2>🛠 Tech Stack</h2>
+
+<h3>Frontend</h3>
+
+<p>
+  <img src="https://skillicons.dev/icons?i=nextjs,react,typescript,javascript,tailwind,html,css" />
 </p>
 
+<h3>Backend</h3>
 
-<!-- Proudly created with GPRM ( https://gprm.itsvg.in ) -->
+<p>
+  <img src="https://skillicons.dev/icons?i=nodejs,python,fastapi,flask,express" />
+</p>
 
+<h3>Database & Cloud</h3>
 
+<p>
+  <img src="https://skillicons.dev/icons?i=postgres,mongodb,supabase,firebase,vercel" />
+</p>
 
+<h3>Tools</h3>
 
+<p>
+  <img src="https://skillicons.dev/icons?i=git,github,docker,figma,vscode" />
+</p>
 
+<br>
 
-### ✍️ Dev Quote
-![](https://quotes-github-readme.vercel.app/api?type=horizontal&theme=dark)
+<h2>📊 GitHub Statistics</h2>
 
+<p align="center">
+  <img height="170" src="https://github-readme-stats.vercel.app/api?username=nattyleyo&show_icons=true&theme=tokyonight&count_private=true" />
+  <img height="170" src="https://github-readme-streak-stats.herokuapp.com/?user=nattyleyo&theme=tokyonight" />
+</p>
 
+<p align="center">
+  <img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=nattyleyo&layout=compact&theme=tokyonight" />
+</p>
 
-<!-- Proudly created with GPRM ( https://gprm.itsvg.in ) -->
+<br>
+
+<h2>📈 Contribution Graph</h2>
+
+<p align="center">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=nattyleyo&theme=tokyo-night" />
+</p>
+
+<br>
+
+<h2>🏆 GitHub Trophies</h2>
+
+<p align="center">
+  <img src="https://github-profile-trophy.vercel.app/?username=nattyleyo&theme=tokyonight&no-frame=true&row=1&column=7" />
+</p>
+
+<br>
+
+<h2>🔝 Top Contributed Repositories</h2>
+
+<p align="center">
+  <img src="https://github-contributor-stats.vercel.app/api?username=nattyleyo&limit=5&theme=tokyonight&combine_all_yearly_contributions=true" />
+</p>
+
+<br>
+
+<h2>✍️ Random Dev Quote</h2>
+
+<p align="center">
+  <img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=tokyonight" />
+</p>
+
+<br>
+
+<h2>🐍 Contribution Snake</h2>
+
+<p align="center">
+  <img src="https://github.com/nattyleyo/nattyleyo/blob/output/github-contribution-grid-snake.svg" />
+</p>

@@ -1,118 +1,153 @@
-<h1 align="center">Hi 👋, I'm Natnael Werma</h1>
+<!-- HEADER -->
 
-<h3 align="center">
-Software Engineer | Full-Stack Developer | AI Enthusiast
-</h3>
+<h1 align="center">Hi 👋, I'm Natnael Meseret</h1>
 
 <p align="center">
-Building scalable web applications with modern technologies.
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=3000&pause=1000&center=true&vCenter=true&width=700&lines=Software+Engineer;Full-Stack+Developer;AI+Solutions+Builder;Next.js+%7C+FastAPI+%7C+Flutter" />
 </p>
 
 <p align="center">
-  <img src="https://komarev.com/ghpvc/?username=nattyleyo&label=Profile%20Views&color=0e75b6&style=flat" alt="Profile Views" />
+  Building scalable software, AI-powered products, and modern web applications.
 </p>
 
-<br>
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=nattyleyo&label=Profile+Views&color=0e75b6&style=flat" />
+</p>
 
-<h2>🚀 About Me</h2>
+<hr>
 
-<ul>
-  <li>🎓 BSc in Software Engineering from Addis Ababa Science and Technology University (AASTU)</li>
-  <li>📊 Graduated with a CGPA of <strong>3.74</strong></li>
-  <li>🧩 Solved <strong>850+ Algorithm & Data Structure Problems</strong></li>
-  <li>💻 Full-Stack Developer specializing in modern web technologies</li>
-  <li>🤖 Passionate about AI, LLMs, and Automation</li>
-  <li>🌱 Continuously learning and building impactful software</li>
-</ul>
+<!-- HIGHLIGHTS -->
 
-<br>
+<h2>🏆 Highlights</h2>
 
-<h2>🏅 Highlights</h2>
+<p>
+🎓 Software Engineering Graduate — <b>AASTU (CGPA: 3.74)</b><br>
+🧩 Solved <b>850+</b> Algorithm & Data Structure Problems<br>
+🚀 Full-Stack Engineer specializing in modern web technologies<br>
+🏅 A2SV Participant<br>
+🤖 Building AI, Automation, and LLM-powered solutions
+</p>
 
-<ul>
-  <li>🚀 Experience building production-ready applications</li>
-  <li>🏆 A2SV Participant</li>
-  <li>⚡ Strong Software Engineering foundation</li>
-  <li>🔍 Passionate about scalable system design</li>
-</ul>
+<hr>
 
-<br>
+<!-- TECH STACK -->
 
-<h2>🛠 Tech Stack</h2>
+<h2>⚡ Core Technologies</h2>
 
 <h3>Frontend</h3>
 
 <p>
-  <img src="https://skillicons.dev/icons?i=nextjs,react,typescript,javascript,tailwind,html,css" />
+<img src="https://skillicons.dev/icons?i=react,nextjs,typescript,javascript,angular,vue,tailwind,html,css" />
 </p>
 
 <h3>Backend</h3>
 
 <p>
-  <img src="https://skillicons.dev/icons?i=nodejs,python,fastapi,flask,express" />
+<img src="https://skillicons.dev/icons?i=nodejs,python,fastapi,flask,express" />
+</p>
+
+<h3>Mobile</h3>
+
+<p>
+<img src="https://skillicons.dev/icons?i=flutter,dart" />
+<img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"/>
 </p>
 
 <h3>Database & Cloud</h3>
 
 <p>
-  <img src="https://skillicons.dev/icons?i=postgres,mongodb,supabase,firebase,vercel" />
+<img src="https://skillicons.dev/icons?i=postgres,mongodb,supabase,firebase,vercel" />
 </p>
 
-<h3>Tools</h3>
+<h3>Tools & Design</h3>
 
 <p>
-  <img src="https://skillicons.dev/icons?i=git,github,docker,figma,vscode" />
+<img src="https://skillicons.dev/icons?i=git,github,docker,figma,vscode" />
+<img src="https://img.shields.io/badge/Webflow-4353FF?style=for-the-badge&logo=webflow&logoColor=white"/>
 </p>
 
-<br>
+<hr>
+
+<!-- FEATURED PROJECTS -->
+
+<h2>🚀 Featured Projects</h2>
+
+<table>
+<tr>
+<td width="50%">
+
+<h3>🌱 GreenNet</h3>
+
+AI-powered environmental monitoring platform.
+
+Tech Stack:
+- Next.js
+- TypeScript
+- AI Integration
+- PostgreSQL
+
+</td>
+
+<td width="50%">
+
+<h3>📚 Milltoo</h3>
+
+Modern full-stack platform focused on performance and scalability.
+
+Tech Stack:
+- React
+- Node.js
+- PostgreSQL
+
+</td>
+</tr>
+</table>
+
+<hr>
+
+<!-- STATS -->
 
 <h2>📊 GitHub Statistics</h2>
 
 <p align="center">
-  <img height="170" src="https://github-readme-stats.vercel.app/api?username=nattyleyo&show_icons=true&theme=tokyonight&count_private=true" />
-  <img height="170" src="https://github-readme-streak-stats.herokuapp.com/?user=nattyleyo&theme=tokyonight" />
+<img height="170" src="https://github-readme-stats.vercel.app/api?username=nattyleyo&show_icons=true&theme=dark&count_private=true"/>
+<img height="170" src="https://github-readme-streak-stats.herokuapp.com/?user=nattyleyo&theme=dark"/>
 </p>
 
 <p align="center">
-  <img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=nattyleyo&layout=compact&theme=tokyonight" />
+<img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=nattyleyo&layout=compact&theme=dark"/>
 </p>
 
-<br>
+<hr>
 
-<h2>📈 Contribution Graph</h2>
+<!-- CONTRIBUTIONS -->
+
+<h2>📈 Contribution Activity</h2>
 
 <p align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=nattyleyo&theme=tokyo-night" />
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=nattyleyo&theme=github-compact"/>
 </p>
 
-<br>
+<hr>
 
-<h2>🏆 GitHub Trophies</h2>
+<!-- CURRENT FOCUS -->
 
-<p align="center">
-  <img src="https://github-profile-trophy.vercel.app/?username=nattyleyo&theme=tokyonight&no-frame=true&row=1&column=7" />
-</p>
+<h2>🎯 Current Focus</h2>
 
-<br>
+<ul>
+<li>Building Full-Stack Applications with Next.js & TypeScript</li>
+<li>Developing Scalable APIs with FastAPI</li>
+<li>AI Agents & LLM Integrations</li>
+<li>Flutter & React Native Development</li>
+<li>System Design & Software Architecture</li>
+</ul>
 
-<h2>🔝 Top Contributed Repositories</h2>
+<hr>
 
-<p align="center">
-  <img src="https://github-contributor-stats.vercel.app/api?username=nattyleyo&limit=5&theme=tokyonight&combine_all_yearly_contributions=true" />
-</p>
+<!-- QUOTE -->
 
-<br>
-
-<h2>✍️ Random Dev Quote</h2>
-
-<p align="center">
-  <img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=tokyonight" />
-</p>
-
-<br>
-
-<h2>🐍 Contribution Snake</h2>
+<h2>💭 Random Dev Quote</h2>
 
 <p align="center">
-  <img src="https://github.com/nattyleyo/nattyleyo/blob/output/github-contribution-grid-snake.svg" />
+<img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=dark"/>
 </p>

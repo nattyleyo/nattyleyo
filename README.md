@@ -65,44 +65,6 @@
 <img src="https://skillicons.dev/icons?i=git,github,docker,figma,vscode" />
 <img src="https://img.shields.io/badge/Webflow-4353FF?style=for-the-badge&logo=webflow&logoColor=white"/>
 </p>
-
-<hr>
-
-<!-- FEATURED PROJECTS -->
-
-<h2>🚀 Featured Projects</h2>
-
-<table>
-<tr>
-<td width="50%">
-
-<h3>🌱 GreenNet</h3>
-
-AI-powered environmental monitoring platform.
-
-Tech Stack:
-- Next.js
-- TypeScript
-- AI Integration
-- PostgreSQL
-
-</td>
-
-<td width="50%">
-
-<h3>📚 Milltoo</h3>
-
-Modern full-stack platform focused on performance and scalability.
-
-Tech Stack:
-- React
-- Node.js
-- PostgreSQL
-
-</td>
-</tr>
-</table>
-
 <hr>
 
 <!-- STATS -->
